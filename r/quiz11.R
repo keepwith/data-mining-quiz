@@ -1,0 +1,21 @@
+library(ISLR)
+library(e1071)
+data(Auto)
+Auto$grade=0
+m<-median(Auto$mpg)
+Auto$grade[Auto$mpg>m]=1
+Auto$grade=as.factor(Auto$grade)
+n<-dim(Auto)[1]
+Auto<-subset(Auto,select=-mpg)
+Auto<-subset(Auto,select=-name)
+sam<-sample(n,292)
+train_set<-Auto[sam,]
+test_set<-Auto[-sam,]
+tune_result=tune(svm,grade~.,data=train_set,kernel="linear",
+              ranges=list(cost=c(0.001,0.01,0.1,1,5,10,100)))
+bestmodel=tune_result$best.model
+summary(bestmodel)
+pred<-predict(bestmodel,test_set)
+table(predict=pred, truth=test_set$grade )
+TPR=sum(pred==1&test_set$grade==1)/sum(test_set$grade==1)
+FPR=sum(pred==1&test_set$grade==0)/sum(test_set$grade==0)

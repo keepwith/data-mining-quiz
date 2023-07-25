@@ -1,0 +1,74 @@
+---
+title: "Quiz Two"
+author: "Tingxian Gao"
+date: "2019年3月10日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Problem One:
+
+```{r Question One}
+library(MASS)
+library(scatterplot3d)
+  mean<-(c(2,2))
+  sigma<-matrix(c(2,0,0,2),nrow=2)
+  x<-mvrnorm(100,mean,sigma)
+  e<-rnorm(100,0,1)
+  y<-2+3*x[,1]+1.5*x[,2]+e
+  s3d<-scatterplot3d(x[,1],x[,2],y,
+                     main="Scatter Plot of Y X1 X2",
+                     xlab="x1",ylab="x2",zlab="y",
+                     scale.y = 0.5)
+  coef<-coef(lm(y~x[,1]+x[,2]))
+  s3d$plane3d(coef)
+```
+
+## Problem Two
+
+```{r pressure }
+library(MASS)
+lm.sim<-function(alpha,beta,gamma,
+                 xmean=c(2,2),sigma=matrix(c(2,0,0,2),nrow=2),
+                 emean=0,evar=1)
+{    
+    x<-mvrnorm(100,xmean,sigma)
+    e<-rnorm(100,emean,evar)
+    y<-alpha+beta*x[,1]+gamma*x[,2]+e
+    coe<-coef(lm(y~x[,1]+x[,2]))
+    return (coe)
+}
+sigma1=matrix(c(2,0,0,2),nrow=2)
+sigma2=matrix(c(2,1,1,2),nrow=2)
+sigma3=matrix(c(2,1.9,1.9,2),nrow=2)
+coef1=replicate(1000,lm.sim(alpha=2,beta=3,gamma=1.5,
+                            xmean=c(2,2),sigma=sigma1,
+                            emean=0,evar=1))
+coef1<-t(coef1)
+boxplot(coef1)
+apply(coef1,2,mean)
+apply(coef1,2,var)
+
+coef2=replicate(1000,lm.sim(alpha=2,beta=3,gamma=1.5,
+                            xmean=c(2,2),sigma=sigma2,
+                            emean=0,evar=1))
+coef2<-t(coef2)
+boxplot(coef2)
+apply(coef2,2,mean)
+apply(coef2,2,var)
+
+coef3=replicate(1000,lm.sim(alpha=2,beta=3,gamma=1.5,
+                            xmean=c(2,2),sigma=sigma3,
+                            emean=0,evar=1))
+coef3<-t(coef3)
+boxplot(coef3)
+apply(coef3,2,mean)
+apply(coef3,2,var)
+
+```
+
+
+# problem Three
+##  随着相关性的增强，估计的参数的方差逐渐增大，我们可以看到相关系数为0和相关系数为0.95相差了接近十倍。

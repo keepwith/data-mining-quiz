@@ -1,0 +1,137 @@
+---
+title: "Quiz Four"
+author: "Gao Tingxian"
+date: "2019年3月30日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+### Question 1
+density
+```{r desity}
+x3<-pretty(c(-5,5),50)
+y1<-dnorm(x3,-1.5,1)
+plot(x3,y1,type="l",col=2,ylab="y")
+y2<-dnorm(x3,1.5,1)
+par(new=TRUE)
+plot(x3,y2,type="l",col=3,ylab="y")
+par(new=TRUE)
+abline(v=0,col=1,lty=2)
+```
+
+histogram
+
+
+```{r histogram}
+library(MASS)
+x1<-data.frame(label=rep(-1,10),data=rnorm(100,-1.5,1))
+x2<-data.frame(label=rep(1,10),data=rnorm(100,1.5,1))
+x<-rbind(x1,x2)
+hist(x1$data,col=2,xlim=c(-5,5),ylim=c(0,30),xlab="data",main="Histogram",breaks = seq(-5,5,0.5))
+hist(x2$data,col=3,xlim=c(-5,5),ylim=c(0,30),xlab="data",main="Histogram",density=10,breaks = seq(-5,5,0.5),add=TRUE)
+m<-lda(label~.,x)$scaling
+par(new=TRUE)
+abline(v=m,col=1,lty=2)
+```
+
+### Question 2
+```{r lda}
+
+library(MASS)
+library(class)
+gen_data<-function(size,c1mean,c2mean,sigma)
+{
+  data<-mvrnorm(n=size,mu=c1mean,Sigma=sigma)
+  class1<-data.frame(label=rep(0,size),X1=data[,1],X2=data[,2])
+  data<-mvrnorm(n=size,mu=c2mean,Sigma=sigma)
+  class2<-data.frame(label=rep(1,size),X1=data[,1],X2=data[,2])
+  data<-rbind(class1,class2)
+  return (data)
+}
+
+knn1.sim<-function(train_data,test_data)
+{
+  m<-knn1(train_data,test_data,train_data$label)
+  tab <-table(test_data$label,m)
+  error <- 1-sum(diag(prop.table(tab)))
+  return (error)
+}
+
+knncv.sim<-function(train_data,test_data)
+{
+  data<-rbind(train_data,test_data)
+  m<-knn.cv(data,data$label)
+  tab<-table(data$label,m)
+  error <- 1-sum(diag(prop.table(tab)))
+  return (error)
+}
+
+lda.sim<-function(train_data,test_data)
+{
+  m<-lda(label~.,train_data)
+  ldapredict<-predict(m,test_data)
+  predict_class<-ldapredict$class
+  tab <- table(test_data$label, predict_class)
+  error <- 1-sum(diag(prop.table(tab)))
+  return (error)
+}
+
+logistic.sim<-function(train_data,test_data)
+{
+  m<-glm(label~.,train_data,family=binomial())
+  glmprob<-predict(m,test_data,type="response")
+  glmpred<-rep(0,dim(test_data)[1])
+  glmpred[glmprob>0.5]=1
+  tab<-table(test_data$label,glmpred)
+  error <- 1-sum(diag(prop.table(tab)))
+  return (error)
+}
+
+qda.sim<-function(train_data,test_data)
+{
+  m<-qda(label~.,train_data)
+  qdapredict<-predict(m,test_data)
+  predict_class<-qdapredict$class
+  tab <- table(test_data$label, predict_class)
+  error <- 1-sum(diag(prop.table(tab)))
+  return (error)
+}
+
+knn1error<-NULL
+knncverror<-NULL
+ldaerror<-NULL
+qdaerror<-NULL
+logisticerror<-NULL
+for (i in 1:100)
+{
+  data=gen_data(50,c(1,1),c(-1,-1),matrix(data=c(4,0,0,4),nrow=2))
+  sam<-sample(100,70)
+  train_data<-data[sam,]
+  test_data<-data[-sam,]
+  knn1error[i]<-knn1.sim(train_data,test_data)
+  knncverror[i]<-knncv.sim(train_data,test_data)
+  ldaerror[i]<-lda.sim(train_data,test_data)
+  logisticerror[i]<-logistic.sim(train_data,test_data)
+  qdaerror[i]<-qda.sim(train_data,test_data)
+}
+boxplot(knn1error,knncverror,ldaerror,logisticerror,qdaerror,names=c("KNN-1","KNN-CV","LDA","Logistic","QDA"),col=c(2,3,4,5,6),main="SCENARIO 1")
+
+for (i in 1:100)
+{
+  data=gen_data(50,c(1,1),c(-1,-1),matrix(data=c(4,2,2,4),nrow=2))
+  sam<-sample(100,70)
+  train_data<-data[sam,]
+  test_data<-data[-sam,]
+  knn1error[i]<-knn1.sim(train_data,test_data)
+  knncverror[i]<-knncv.sim(train_data,test_data)
+  ldaerror[i]<-lda.sim(train_data,test_data)
+  logisticerror[i]<-logistic.sim(train_data,test_data)
+  qdaerror[i]<-qda.sim(train_data,test_data)
+}
+boxplot(knn1error,knncverror,ldaerror,logisticerror,qdaerror,names=c("KNN-1","KNN-CV","LDA","Logistic","QDA"),col=c(2,3,4,5,6),main="SCENARIO 2")
+
+```

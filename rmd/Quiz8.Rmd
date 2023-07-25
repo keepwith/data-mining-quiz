@@ -1,0 +1,92 @@
+---
+title: "Quiz 8"
+author: "Gao Tingxian"
+date: "2019年4月27日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question One
+
+```{r 1}
+library(ISLR)
+library(psych)
+library(glmnet)
+library(boot)
+data(Credit)
+Credit<-Credit[-1]
+Credit<-as.data.frame(lapply(Credit,as.numeric))
+n<-dim(Credit)[1]
+
+
+cmp<-function()
+{
+  grid<-10^seq(10,-2,length=100)
+  
+  sam<-sample(n,0.5*n)
+  train_set<-Credit[sam,]
+  test_set<-Credit[-sam,]
+  
+  train_y<-train_set[,11]
+  train_x<-data.matrix(train_set[,-11])
+  test_y<-test_set[,11]
+  test_x<-data.matrix(test_set[,-11])
+ 
+  
+  prin<-principal(train_x[,-11],nfactors=10,score=TRUE)
+  prin<-data.frame(cbind(train_y,prin$scores))
+  err<-NULL
+  for(i in 1:10)
+  {
+    pcr<-glm(train_y~.,data=prin[,1:(i+1)])
+    cv.err<-cv.glm(data=prin[,1:(i+1)],pcr)
+    err[i]<-cv.err$delta[1]
+  }
+  loc<-which.min(err)
+  
+  prin<-principal(test_x[,-11],nfactors=loc,score=TRUE)
+  prin<-data.frame(cbind(test_y,prin$scores))
+  pri<-glm(test_y~.,data=prin)
+  mse[1]<-mean((predict(pri,prin[,-1])-test_y)^2)
+  
+  
+  
+  ridge<-cv.glmnet(train_x,train_y,alpha=0,lambda=grid)
+  mse[2]<-mean((predict(ridge,test_x)-test_y)^2)
+  
+  lasso<-cv.glmnet(train_x,train_y,alpha=1,lambda=grid)
+  mse[3]<-mean((predict(lasso,test_x)-test_y)^2)
+  
+  return (mse)
+}
+
+mse<-NULL
+mse<-replicate(100,cmp())
+mse<-t(mse)
+colnames(mse)=c("pcr","ridge","lasso")
+boxplot(mse,ylab="MSE",col=2:4)
+```
+
+## Question Two
+
+```{r 2}
+library(ggplot2)
+data(Wage)
+p1 <- ggplot(Wage, aes(age, wage))+
+  geom_point(show.legend = FALSE,color = 'grey',size = 1)+
+  geom_smooth(method = "lm", formula = y ~ poly(x,4),color='blue',size = 2,se = T)
+p1
+
+
+Wage$wage[Wage$wage<250]<-0
+Wage$wage[Wage$wage>=250]<-1
+p2 <- ggplot(Wage, aes(age, wage))+
+  geom_point(show.legend = FALSE,color = 'grey',size = 1)+
+  geom_smooth(method = "glm",method.args = list(family ="binomial"), formula = y ~ poly(x,4),color='blue',size = 2,se = T)
+p2
+```
+
+

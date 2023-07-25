@@ -1,0 +1,70 @@
+---
+title: "Quiz One"
+author: "Tingxian Gao"
+date: "2019年3月3日"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## (1)
+
+
+```{r problem 1,echo=TRUE}
+x<-rnorm(100,2,sqrt(2))
+e<-rnorm(100,0,sqrt(1))
+y<-2+3*x+e
+plot(x,y)
+abline(lm(y~x),col=1)
+abline(a=2,b=3,col=2)
+```
+
+## (2)
+
+
+```{r problem 2,echo=TRUE}
+beta0<-c(1:1000)
+beta1<-c(1:1000)
+for (i in 1:1000)
+{
+  x<-rnorm(100,2,sqrt(2))
+  e<-rnorm(100,0,sqrt(1))
+  y<-2+3*x+e
+  beta0[i]<-coef(lm(y~x))[1]
+  beta1[i]<-coef(lm(y~x))[2]
+}
+boxplot(beta0,beta1)
+print(mean(beta0))       ## 计算β0均值
+print(mean(beta1))       ## 计算β1均值
+print(var(beta0))        ## 计算β0方差
+print(var(beta1))        ## 计算β1方差
+```
+   
+   
+   
+   
+##
+
+OLS是无偏估计，我们可以看到随着实验次数增加$\hat{β_0}$的均值和$\hat{\beta_1}$的均值都接近于$\beta_0$和$\beta_1$  
+事实上把总体方程写成矩阵形式  
+                       $Y=\beta X+\epsilon$  
+                       OLS的结果    
+                       $\hat{\beta}=(X'X)^{-1}X'Y$    
+                       $E(\hat{\beta})=E((X'X)^{-1}X'Y)$      
+                       $E(\hat{\beta})=E((X'X)^{-1}X'(\beta X+\epsilon))$     
+                       $E(\hat{\beta})=E(\beta(X'X)^{-1}X'X)$     
+                       $E(\hat{\beta})=\beta$  
+因此OLS是无偏估计  
+  
+  
+   
+   
+    
+  
+##
+
+ 
+
+

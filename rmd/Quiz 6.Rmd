@@ -1,0 +1,77 @@
+---
+title: "24320162202831_é«˜åº­é—²_Quiz6"
+author: "Gao Tingxian"
+date: "2019å¹?4æœ?8æ—?"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Question One
+
+### Cp
+```{r cp}
+library(ISLR)
+data(Credit)
+library(leaps)
+Credit<-Credit[,-1]
+regfit.full=regsubsets(Balance~.,data=Credit,nvmax=11)
+reg.summary=summary(regfit.full)
+
+
+plot(reg.summary$cp,xlab="Number of Variables",ylab="Cp",type="b")
+loc<-which.min(reg.summary$cp)
+points(loc,reg.summary$cp[loc],col="red",cex=2,pch=4)
+coef(regfit.full,loc)
+
+
+```
+
+### BIC
+
+```{r bic}
+plot(reg.summary$bic,xlab="Number of Variables",ylab="BIC",type="b")
+loc<-which.min(reg.summary$bic)
+points(loc,reg.summary$bic[loc],col="red",cex=2,pch=4)
+coef(regfit.full,loc)
+```
+
+### Adjusted R2
+```{r adjr2}
+plot(reg.summary$adjr2,xlab="Number of Variables",ylab="Adjusted R2",type="b")
+loc<-which.max(reg.summary$adjr2)
+points(loc,reg.summary$adjr2[loc],col="red",cex=2,pch=4)
+coef(regfit.full,loc)
+```
+
+### CV
+```{r cv}
+library(caret)
+mse<-rep(0,11)
+folds=createFolds(y=Credit$Balance,10)
+predict.regsubsets = function(object, newdata, id, ...) {
+  form = as.formula(object$call[[2]])
+  mat = model.matrix(form, newdata)
+  coefi = coef(object, id = id)
+  mat[, names(coefi)] %*% coefi
+}
+for (i in 1:10)
+{
+  train_cv<-Credit[-folds[[i]],]
+  test_cv<-Credit[folds[[i]],]
+  regfit.full=regsubsets(Balance~.,data=Credit,nvmax=11)
+  for(j in 1:11)
+  {
+    pre<-predict(regfit.full,test_cv,id=j)
+    mse[j]<-mse[j]+mean((pre-test_cv$Balance)^2)
+  }
+}
+mse<-mse/11
+
+
+plot(mse,xlab="Number of Variables",ylab="MSE",type="b")
+loc<-which.min(mse)
+points(loc,mse[loc],col="red",cex=2)
+```
